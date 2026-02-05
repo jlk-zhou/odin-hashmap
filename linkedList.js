@@ -6,8 +6,20 @@ class LinkedList {
     this._size = size;
   }
 
+  get head() {
+    return this._head; 
+  }
+
   set head(newHead) {
     this._head = newHead;
+  }
+
+  sizeUp() {
+    this._size += 1; 
+  }
+
+  sizeDown() {
+    this._size -= 1; 
   }
 
   getHeadNode() {

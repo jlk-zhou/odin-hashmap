@@ -57,52 +57,87 @@ class Hashmap {
   }
 
   get(key) {
-    const hash = this.hash(key); 
-    const bucket = this._hashMap[hash]; 
+    const hash = this.hash(key);
+    const bucket = this._hashMap[hash];
 
-    if (bucket.size() === 0) return null; 
-    
-    let nextNode = bucket.getHeadNode(); 
-    
+    if (bucket.size() === 0) return null;
+
+    let nextNode = bucket.getHeadNode();
+
     while (true) {
-      if (nextNode === null) return null; 
+      if (nextNode === null) return null;
       if (key === Object.keys(nextNode.value)[0]) {
-        return nextNode.value[key]; 
+        return nextNode.value[key];
       }
-      nextNode = nextNode.nextNode; 
+      nextNode = nextNode.nextNode;
     }
   }
 
   has(key) {
-    const hash = this.hash(key); 
-    const bucket = this._hashMap[hash]; 
+    const hash = this.hash(key);
+    const bucket = this._hashMap[hash];
 
-    if (bucket.size() === 0) return false; 
-    
-    let nextNode = bucket.getHeadNode(); 
-    
+    if (bucket.size() === 0) return false;
+
+    let nextNode = bucket.getHeadNode();
+
     while (true) {
-      if (nextNode === null) return false; 
+      if (nextNode === null) return false;
       if (key === Object.keys(nextNode.value)[0]) {
-        return true; 
+        return true;
       }
-      nextNode = nextNode.nextNode; 
+      nextNode = nextNode.nextNode;
+    }
+  }
+
+  remove(key) {
+    const hash = this.hash(key);
+    const bucket = this._hashMap[hash];
+
+    if (bucket.size() === 0) return false;
+
+    let thisNode = bucket.getHeadNode();
+
+    if (key === Object.keys(thisNode.value)[0]) {
+      // We found the key at index 0
+      // Otherwise make the next node the head node
+      // This works even if there's no next node (since it's null)
+      const nextNode = thisNode.nextNode;
+      // Ew! For some reason I couldn't set head without using private var
+      bucket._head = nextNode;
+      bucket.sizeDown();
+      return true;
+    }
+
+    while (true) {
+      if (thisNode.nextNode === null) return false;
+      if (key === Object.keys(thisNode.nextNode.value)[0]) {
+        // We found the key in the next node after index 0
+        // So remove this node from the bucket
+        const oldNextNode = thisNode.nextNode;
+        const newNextNode = oldNextNode.nextNode;
+
+        thisNode.nextNode = newNextNode;
+        oldNextNode.nextNode = null;
+
+        bucket.sizeDown();
+
+        return true;
+      }
+      thisNode = thisNode.nextNode;
     }
   }
 }
 
 const hashmap = new Hashmap();
-console.log(hashmap.hash("Rama")); 
-console.log(hashmap.hash("Sita")); 
 
-hashmap.set("Rama", "Foo"); 
-hashmap.set("Sita", "Bar"); 
+hashmap.set("Rama", "Foo");
+hashmap.set("Sita", "Bar");
 
-console.log(hashmap); 
-console.log(hashmap._hashMap[3].toString()); 
+console.log(hashmap._hashMap[3].toString());
 
-hashmap.set("Name", "Sucker"); 
+hashmap.set("Name", "Sucker");
 
-console.log(hashmap.get("name")); 
-console.log(hashmap.has("Name")); 
-console.log(hashmap.has("alskjv")); 
+hashmap.remove("Rama");
+console.log(hashmap._hashMap[3].toString());
+console.log(hashmap.has("Rama"));
