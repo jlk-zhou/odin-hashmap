@@ -1,14 +1,19 @@
 import { LinkedList } from "./linkedList.js";
 
 class Hashmap {
-  constructor(loadFactor = 0.75, capacity = 16) {
+  constructor({ loadFactor = 0.75, capacity = 16, length = 0 } = {}) {
     this._loadFactor = loadFactor;
     this._capacity = capacity;
     this._hashMap = [];
+    this._length = length;
 
     for (let i = 0; i < capacity; i++) {
       this._hashMap.push(new LinkedList());
     }
+  }
+
+  get length() {
+    return this._length;
   }
 
   hash(key) {
@@ -34,6 +39,7 @@ class Hashmap {
     // If the bucket is empty, put it inside
     if (linkedList.size() === 0) {
       linkedList.append(object);
+      this._length += 1;
     } else {
       // Traverse through the linked list
       // Start from the head
@@ -43,6 +49,7 @@ class Hashmap {
           // This means we didn't find the key
           // So append the new object
           linkedList.append(object);
+          this._length += 1;
           break;
         } else if (key === Object.keys(nextNode.value)[0]) {
           // This means we found they key
@@ -53,6 +60,10 @@ class Hashmap {
         // Move to the next node
         nextNode = nextNode.nextNode;
       }
+    }
+
+    if (this._length / this._capacity > this._loadFactor) {
+      this._expand();
     }
   }
 
@@ -106,6 +117,7 @@ class Hashmap {
       // Ew! For some reason I couldn't set head without using private var
       bucket._head = nextNode;
       bucket.sizeDown();
+      this._length -= 1;
       return true;
     }
 
@@ -121,23 +133,85 @@ class Hashmap {
         oldNextNode.nextNode = null;
 
         bucket.sizeDown();
+        this._length -= 1;
 
         return true;
       }
       thisNode = thisNode.nextNode;
     }
   }
+
+  clear() {
+    this._hashMap = [];
+    this._length = 0;
+
+    for (let i = 0; i < this._capacity; i++) {
+      this._hashMap.push(new LinkedList());
+    }
+  }
+
+  keys() {
+    const keys = [];
+    this._hashMap.forEach((bucket) => {
+      let thisNode = bucket.getHeadNode();
+      if (!thisNode) return;
+
+      while (true) {
+        keys.push(Object.keys(thisNode.value)[0]);
+        thisNode = thisNode.nextNode;
+        if (!thisNode) return;
+      }
+    });
+
+    return keys;
+  }
+
+  values() {
+    const values = [];
+    this._hashMap.forEach((bucket) => {
+      let thisNode = bucket.getHeadNode();
+      if (!thisNode) return;
+
+      while (true) {
+        values.push(Object.values(thisNode.value)[0]);
+        thisNode = thisNode.nextNode;
+        if (!thisNode) return;
+      }
+    });
+
+    return values;
+  }
+
+  entries() {
+    const entries = [];
+    this._hashMap.forEach((bucket) => {
+      let thisNode = bucket.getHeadNode();
+      if (!thisNode) return;
+
+      while (true) {
+        entries.push(JSON.stringify(thisNode.value));
+        thisNode = thisNode.nextNode;
+        if (!thisNode) return;
+      }
+    });
+
+    return entries;
+  }
+
+  _expand() {
+    const config = {
+      capacity: (this._capacity *= 2),
+    };
+    const newHashMap = new Hashmap(config);
+
+    const entries = this.entries();
+    entries.forEach((entry) => {
+      const object = JSON.parse(entry);
+      newHashMap.set(Object.keys(object)[0], Object.values(object)[0]);
+    });
+
+    this._hashMap = newHashMap._hashMap;
+  }
 }
 
-const hashmap = new Hashmap();
-
-hashmap.set("Rama", "Foo");
-hashmap.set("Sita", "Bar");
-
-console.log(hashmap._hashMap[3].toString());
-
-hashmap.set("Name", "Sucker");
-
-hashmap.remove("Rama");
-console.log(hashmap._hashMap[3].toString());
-console.log(hashmap.has("Rama"));
+export { Hashmap };
